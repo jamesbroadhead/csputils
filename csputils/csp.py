@@ -17,9 +17,10 @@ class CSP(object):
     UNSAFE_EVAL = "'unsafe-eval'"
     NONE = "'none'"
 
+    quoted_reserved_source_expressions = [ SELF, UNSAFE_INLINE, UNSAFE_EVAL, NONE ]
     # the un-quoted form of strings which must be quoted in valid CSP
-    reserved_source_expressions = [ i.strip("'")
-                                    for i in SELF, UNSAFE_INLINE, UNSAFE_EVAL, NONE ]
+    unquoted_reserved_source_expressions = [ i.strip("'")
+                                             for i in quoted_reserved_source_expressions ]
 
     def __init__(self, content):
         """
@@ -79,7 +80,7 @@ class CSP(object):
         return value
 
     @classmethod
-    def _validate_value(cls, value):
+    def _validate_source_list(cls, source_list):
         """
         The "special" source values of 'self', 'unsafe-inline', 'unsafe-eval', and 'none'
         must be quoted! "'self'". Without quotes they will not work as intended.
@@ -89,23 +90,25 @@ class CSP(object):
         name as any of the reserved_source_expressions (eg. if self or none resolved to a
         server). Conversely, it stops the user adding a non-functional, un-quoted source.
 
-        Legal:   " 'self';", " 'self' "
-        Illegal: " self;",   " self "
-        """
+        In the final string:
+            Legal:   " 'self';", " 'self' "
+            Illegal: " self;",   " self "
 
+        @param value: list of source values, each of which will be checked
+        """
         msg = ("You included a special value in your CSP, but did not wrap it in quotes."
                " eg. %s should be '%s'")
-        for v in cls.reserved_source_expressions:
-            if v in value:
+        for v in cls.unquoted_reserved_source_expressions:
+            if v in source_list:
                 raise ValueError(msg % (v, v))
-        return value
+        return source_list
 
     @classmethod
     def gen_policy(cls, content):
         """
         @param content: dict of keys to a list of values
         """
-        policy = [ '%s %s' % (k, cls._join_value(cls._validate_value(content.get(k))))
+        policy = [ '%s %s' % (k, cls._join_value(cls._validate_source_list(content.get(k))))
                    for k in cls._sorted_keys(content) ]
 
         return '; '.join(policy)
