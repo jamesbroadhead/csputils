@@ -1,6 +1,5 @@
 
 from copy import copy
-from pprint import pprint
 
 
 class CSP(object):
@@ -32,7 +31,7 @@ class CSP(object):
         return self.gen_policy(self.content)
 
     def __repr__(self):
-        return '<%s:%s>' % (self.__class__.__name__, self.policy)
+        return '<%s:%s>' % (self.__class__.__name__, self.gen_policy(self.content))
 
     def __eq__(self, other):
         return self.content == other.content
@@ -43,9 +42,9 @@ class CSP(object):
     @classmethod
     def from_string(cls, str_):
         """ create a CSP object from a string-form CSP rule """
-        key_values = [ key_values_str.strip().split(' ')
+        keys_values = [ key_values_str.strip().split(' ')
                        for key_values_str in str_.split(';') ]
-        dct = { key_values[0]: key_values[1:] for key_values in key_values }
+        dct = { key_values[0]: key_values[1:] for key_values in keys_values }
         return cls(dct)
 
     @classmethod
