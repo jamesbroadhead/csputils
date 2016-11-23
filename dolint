@@ -1,4 +1,4 @@
 #!/bin/bash
 
-pyflakes csputils
-pylint csputils
+pyflakes setup.py csputils tests
+pylint setup.py csputils tests
